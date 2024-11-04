@@ -95,34 +95,3 @@ export const returnUserByRequest = async (req: Request, res: Response) => {
     }
 };
 
-export async function addNewDevice(user: any, req: Request) {
-    const ipAddress = req.header("CF-Connecting-IP") || req.ip || '0.0.0.0';
-    const userAgent = req.headers['user-agent'] || 'unknown';
-
-    try {
-        let DEVICE = await prisma.device.findFirst({
-            where: {ipAddress: ipAddress}
-        });
-        
-        if (!DEVICE) {
-            DEVICE = await prisma.device.create({
-                data: {
-                    userId: user.id,
-                    ipAddress: ipAddress,
-                    userAgent: userAgent,
-                    lastOnline: new Date()
-                }
-            });
-        } else {
-            DEVICE = await prisma.device.update({
-                where: {id: DEVICE.id},
-                data: {
-                    userAgent: userAgent,
-                    lastOnline: new Date()
-                }
-            });
-        }
-    } catch (error) {
-        console.error("Failed to add device: ", error);
-    }
-}

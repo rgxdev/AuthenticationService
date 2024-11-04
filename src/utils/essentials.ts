@@ -4,6 +4,7 @@ import {Request} from 'express';
 import {logger} from '@/lib/logger';
 import {COOKIE_DOMAIN, JWT_SECRET, REFERRAL_CODE_LENGTH, TOKEN_EXPIRATION} from "@/config/settings";
 import {randomBytes} from "crypto";
+import prisma from "@/lib/prismaClient";
 
 export interface TokenPayload extends JwtPayload {
     userId: string;
@@ -57,4 +58,19 @@ export const verifyTokenString = (token: string): TokenPayload | null => {
 
 export const generateReferralCode = () => {
     return randomBytes(REFERRAL_CODE_LENGTH).toString('hex');
+};
+
+export const generateSsoToken = async (userId: string) => {
+    const token = randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 1000 * 60 * 30);
+
+    await prisma.ssoToken.create({
+        data: {
+            userId,
+            token,
+            expiresAt,
+        },
+    });
+
+    return token;
 };

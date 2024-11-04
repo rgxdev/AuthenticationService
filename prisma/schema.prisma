@@ -19,9 +19,11 @@ model Device {
   userId      String
   user        User     @relation(fields: [userId], references: [id])
   userAgent   String
-  ipAddress   String
+  ipAddress   String?
   fingerprint String?
   lastOnline  DateTime @default(now())
+
+  @@unique([userId, fingerprint])
 }
 
 model User {

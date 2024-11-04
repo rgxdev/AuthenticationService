@@ -6,6 +6,7 @@ import expressUseragent from 'express-useragent';
 import cookieParser from 'cookie-parser';
 import {ALLOWED_ORIGINS, API_VERSION, PORT} from "@/config/settings";
 
+
 const app = express();
 
 app.use(express.json());

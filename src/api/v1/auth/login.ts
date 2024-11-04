@@ -5,8 +5,8 @@ import {logger} from "@/lib/logger";
 import {LoginSchema} from "@/schema/authSchema";
 import prisma from "@/lib/prismaClient";
 import {comparePassword, generateToken} from "@/utils/essentials";
-import {addNewDevice} from "@/utils/user";
 import {AUTHENTICATION_TYPE, COOKIE_DOMAIN, TOKEN_EXPIRATION} from "@/config/settings";
+import {addOrUpdateDevice} from "@/utils/security";
 
 export default (router: Router) => {
     // @ts-ignore
@@ -45,9 +45,17 @@ export default (router: Router) => {
                 return res.status(401).json({type: 'invalid_request', message: "Incorrect login credentials."});
             }
 
-            await addNewDevice(user, req);
+            const updatedUser = await prisma.user.update({
+                where: {id: user.id},
+                data: {
+                    lastLogin: new Date(),
+                    firstLogin: user.firstLogin ? user.firstLogin : new Date()
+                }
+            });
 
-            const token = generateToken(user.id, user.username);
+            await addOrUpdateDevice(updatedUser, req);
+
+            const token = generateToken(updatedUser.id, updatedUser.username);
 
             res.cookie('_auth.session-token', token, {
                 secure: process.env.NODE_ENV === 'production',
@@ -60,7 +68,7 @@ export default (router: Router) => {
 
             logger.info("AUTH", `User successfully logged in: ${identifier}`, ipAddress);
 
-            return res.status(200).json({type: 'success', message: "Successfully logged in."});
+            return res.status(200).json({type: 'success', message: "Successfully logged in.", token});
         } catch (error: any) {
             logger.error("Error during login process:", error);
             return res.status(500).json({type: 'api_error', message: "An error has occurred."});
