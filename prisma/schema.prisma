@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  DEVELOPER
+  USER
+}
+
+model Device {
+  id          String   @id @default(uuid()) @map("_id")
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  userAgent   String
+  ipAddress   String
+  fingerprint String?
+  lastOnline  DateTime @default(now())
+}
+
+model User {
+  id                 String     @id @default(uuid()) @map("_id")
+  email              String     @unique
+  ip                 String
+  createdAt          DateTime   @default(now())
+  lastLogin          DateTime?
+  firstLogin         DateTime?
+  role               UserRole   @default(USER)
+  isTwoFactorEnabled Boolean    @default(false)
+  twoFactorSecret    String?
+  nickname           String?
+  username           String     @unique
+  password           String
+  referralCode       String     @unique
+  referredBy         String?    @db.String
+  referrals          Referral[] @relation("ReferrerRelation")
+  referredUsers      Referral[] @relation("ReferredUserRelation")
+
+  VerifyKeys VerifyKey[]
+  SsoToken   SsoToken[]
+  Device     Device[]
+}
+
+model VerifyKey {
+  id        String   @id @default(uuid()) @map("_id")
+  key       String   @unique
+  ip        String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+}
+
+model SsoToken {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Referral {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  referrerId     String   @db.String
+  referredUserId String   @db.String
+  createdAt      DateTime @default(now())
+
+  referrer     User @relation("ReferrerRelation", fields: [referrerId], references: [id])
+  referredUser User @relation("ReferredUserRelation", fields: [referredUserId], references: [id])
+}
