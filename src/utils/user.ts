@@ -103,6 +103,7 @@ export async function addNewDevice(user: any, req: Request) {
         let DEVICE = await prisma.device.findFirst({
             where: {ipAddress: ipAddress}
         });
+        
         if (!DEVICE) {
             DEVICE = await prisma.device.create({
                 data: {

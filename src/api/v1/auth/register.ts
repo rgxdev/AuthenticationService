@@ -5,6 +5,7 @@ import {RegisterSchema} from "@/schema/authSchema";
 import prisma from "@/lib/prismaClient";
 import {generateRandomString, generateReferralCode, generateToken, hashPassword} from "@/utils/essentials";
 import {AUTHENTICATION_TYPE, COOKIE_DOMAIN, MAX_IPS_PER_USER, TOKEN_EXPIRATION} from "@/config/settings";
+import {sendMail} from "@/utils/mailer";
 
 export default (router: Router) => {
     // @ts-ignore
@@ -91,6 +92,12 @@ export default (router: Router) => {
                     },
                 });
 
+                const mailStatus = await sendMail(newUser, verifyKey.key, 'Verify your Schulsync Account');
+
+                if (!mailStatus) {
+                    logger.error('MAILER', `Failed to send verification email: ${email}`);
+                    throw new Error("Failed to send verification email.");
+                }
                 return {newUser, verifyKey};
             });
 
@@ -110,7 +117,7 @@ export default (router: Router) => {
             return res.status(201).json({type: 'success', message: "Registration successful."});
         } catch (error: any) {
             logger.error("Error during registration process:", error, ipAddress);
-            return res.status(500).json({type: 'api_error', message: "An error has occurred."});
+            return res.status(500).json({type: 'api_error', message: `An error has occurred. ${error.message}`});
         }
     });
 };
