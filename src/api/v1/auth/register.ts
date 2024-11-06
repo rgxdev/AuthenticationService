@@ -8,7 +8,6 @@ import {AUTHENTICATION_TYPE, COOKIE_DOMAIN, MAX_IPS_PER_USER, TOKEN_EXPIRATION} 
 import {sendMail} from "@/utils/mailer";
 
 export default (router: Router) => {
-    // @ts-ignore
     router.post('/register', async (req: Request, res: Response) => {
         const {username, email, password, password_confirm} = req.body;
         const ipAddress = req.header("CF-Connecting-IP") || req.ip || '0.0.0.0';

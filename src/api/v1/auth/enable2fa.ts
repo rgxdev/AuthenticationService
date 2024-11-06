@@ -5,9 +5,12 @@ import prisma from "@/lib/prismaClient";
 import {authenticator} from "otplib";
 import qrcode from 'qrcode';
 
+authenticator.options = {
+    step: 30,
+    digits: 9
+};
 
 export default (router: Router) => {
-    //@ts-ignore
     router.post('/enable-2fa', authenticateToken(), async (req, res) => {
         const userId = (req as any).userId;
 
@@ -27,14 +30,15 @@ export default (router: Router) => {
                 });
             }
 
-            const twoFactorSecret = authenticator.generateSecret(22);
-
+            const twoFactorSecret = authenticator.generateSecret();
             await prisma.user.update({
                 where: {id: userId},
                 data: {twoFactorSecret},
             });
 
             const otpauthUrl = authenticator.keyuri(user.email, 'Schulsync', twoFactorSecret);
+            console.log('Generated otpauth URL:', otpauthUrl); // Zum Debuggen der URL
+
             const qrCodeImageUrl = await qrcode.toDataURL(otpauthUrl);
 
             res.status(200).json({

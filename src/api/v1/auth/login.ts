@@ -9,7 +9,6 @@ import {AUTHENTICATION_TYPE, COOKIE_DOMAIN, TOKEN_EXPIRATION} from "@/config/set
 import {addOrUpdateDevice} from "@/utils/security";
 
 export default (router: Router) => {
-    // @ts-ignore
     router.post('/login', async (req: Request, res: Response) => {
         let identifier;
         const {password} = req.body;

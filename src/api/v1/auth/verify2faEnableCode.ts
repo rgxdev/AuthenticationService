@@ -4,7 +4,6 @@ import {logger} from "@/lib/logger";
 import {authenticateToken, verify2FACode} from "@/utils/security";
 
 export default (router: Router) => {
-    //@ts-ignore
     router.post('/verify-2fa-enable', authenticateToken(), async (req, res) => {
         const {twoFactorCode} = req.body;
         const userId = (req as any).userId;
