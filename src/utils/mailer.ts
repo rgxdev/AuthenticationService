@@ -11,7 +11,7 @@ export async function sendMail(
         const transporter = await createTransporter();
 
         const mailOptions = {
-            from: "Schulsync System <no-reply@d-aaron.dev>", // todo: change this to your email
+            from: "Personal System <no-reply@d-aaron.dev>", // todo: change this to your email
             to: user.email,
             subject: subject,
             html: htmlContent,
