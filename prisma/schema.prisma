@@ -17,16 +17,29 @@ enum UserRole {
   USER
 }
 
-model Device {
-  id          String   @id @default(uuid()) @map("_id")
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  userAgent   String
-  ipAddress   String?
-  fingerprint String?
-  lastOnline  DateTime @default(now())
+model RefreshToken {
+  id        String   @id @default(uuid()) @map("_id")
+  token     String   @unique
+  userId    String
+  deviceId  String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 
-  @@unique([userId, fingerprint])
+  user   User   @relation(fields: [userId], references: [id])
+  device Device @relation(fields: [deviceId], references: [id])
+}
+
+model Device {
+  id            String         @id @default(uuid()) @map("_id")
+  userId        String
+  user          User           @relation(fields: [userId], references: [id])
+  userAgent     String
+  ipAddress     String?
+  fingerprint   String?
+  lastOnline    DateTime       @default(now())
+  refreshTokens RefreshToken[]
+
+  @@unique([fingerprint])
 }
 
 model User {
@@ -50,7 +63,7 @@ model User {
   VerifyKeys   VerifyKey[]
   SsoToken     SsoToken[]
   Device       Device[]
-  refreshToken String?
+  RefreshToken RefreshToken[]
 }
 
 model VerifyKey {

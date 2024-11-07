@@ -58,6 +58,7 @@ const registerRoutesFromDirectory = async (directory: string, router: Router) =>
     const apiRouter = Router();
     await registerRoutesFromDirectory(join(__dirname, 'api', API_VERSION), apiRouter);
     app.use(`/`, apiRouter);
+    
 
     app.listen(PORT, () => {
         console.log(`Server running on http://localhost:${PORT}`);

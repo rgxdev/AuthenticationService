@@ -1,10 +1,8 @@
-// utils/essentials.ts
-
 import bcrypt from 'bcrypt';
 import jwt, {JwtPayload} from 'jsonwebtoken';
 import {Request} from 'express';
 import {logger} from '@/lib/logger';
-import {COOKIE_DOMAIN, JWT_SECRET, REFERRAL_CODE_LENGTH, REFRESH_TOKEN_EXPIRATION} from "@/config/settings";
+import {COOKIE_DOMAIN, JWT_SECRET, REFERRAL_CODE_LENGTH} from "@/config/settings";
 import {randomBytes} from "crypto";
 import prisma from "@/lib/prismaClient";
 
@@ -31,11 +29,8 @@ export const generateTempToken = (userId: string, username: string) => {
     });
 };
 
-export const generateRefreshToken = (userId: string, username: string) => {
-    return jwt.sign({userId, username}, JWT_SECRET, {
-        expiresIn: `${REFRESH_TOKEN_EXPIRATION}d`,
-        audience: `.${COOKIE_DOMAIN}`,
-    });
+export const generateRefreshToken = () => {
+    return randomBytes(64).toString('hex');
 };
 
 export function generateRandomString(length: number) {

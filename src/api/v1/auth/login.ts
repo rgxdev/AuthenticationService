@@ -1,10 +1,8 @@
-// api/v1/auth/login.ts
-
 import {Request, Response, Router} from 'express';
 import {logger} from "@/lib/logger";
 import {LoginSchema} from "@/schema/authSchema";
 import prisma from "@/lib/prismaClient";
-import {comparePassword, generateRefreshToken, generateTempToken, verifyTokenString} from "@/utils/essentials";
+import {comparePassword, generateRefreshToken, generateTempToken} from "@/utils/essentials";
 import {AUTHENTICATION_TYPE, REFRESH_TOKEN_EXPIRATION} from "@/config/settings";
 import {addOrUpdateDevice} from "@/utils/security";
 
@@ -52,17 +50,22 @@ export default (router: Router) => {
                 }
             });
 
-            await addOrUpdateDevice(updatedUser, req);
+            const device = await addOrUpdateDevice(updatedUser, req);
 
             const tempToken = generateTempToken(updatedUser.id, updatedUser.username);
-            const refreshToken = generateRefreshToken(updatedUser.id, updatedUser.username);
+            const mainToken = generateRefreshToken();
+            const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * REFRESH_TOKEN_EXPIRATION);
 
-            await prisma.user.update({
-                where: {id: user.id},
-                data: {refreshToken}
+            await prisma.refreshToken.create({
+                data: {
+                    token: mainToken,
+                    userId: user.id,
+                    deviceId: device.id,
+                    expiresAt
+                }
             });
 
-            res.cookie('_auth.refresh-token', refreshToken, {
+            res.cookie('_auth.refresh-token', mainToken, {
                 secure: process.env.NODE_ENV === 'production',
                 httpOnly: true,
                 /*domain: `.${COOKIE_DOMAIN}`,
@@ -87,22 +90,22 @@ export default (router: Router) => {
         }
 
         try {
-            const payload = verifyTokenString(refreshToken);
-            if (!payload) {
-                return res.status(403).json({message: 'Invalid refresh token.'});
+            const storedToken = await prisma.refreshToken.findUnique({
+                where: {token: refreshToken},
+                include: {user: true, device: true}
+            });
+
+            if (!storedToken || storedToken.expiresAt < new Date()) {
+                return res.status(403).json({message: 'Invalid or expired refresh token.'});
             }
 
-            const user = await prisma.user.findUnique({where: {id: payload.userId}});
-            if (!user || user.refreshToken !== refreshToken) {
-                return res.status(403).json({message: 'Invalid refresh token.'});
-            }
+            const tempToken = generateTempToken(storedToken.user.id, storedToken.user.username);
+            const newRefreshToken = generateRefreshToken();
+            const newExpiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * REFRESH_TOKEN_EXPIRATION);
 
-            const tempToken = generateTempToken(user.id, user.username);
-            const newRefreshToken = generateRefreshToken(user.id, user.username);
-
-            await prisma.user.update({
-                where: {id: user.id},
-                data: {refreshToken: newRefreshToken}
+            await prisma.refreshToken.update({
+                where: {token: refreshToken},
+                data: {token: newRefreshToken, expiresAt: newExpiresAt}
             });
 
             res.cookie('_auth.refresh-token', newRefreshToken, {

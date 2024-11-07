@@ -1,5 +1,3 @@
-// generate a endpoint that shows an html page
-
 import {Router} from 'express';
 import {logger} from '@/lib/logger';
 
