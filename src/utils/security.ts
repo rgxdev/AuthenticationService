@@ -127,9 +127,11 @@ export const authenticateToken = (requiredRole: string = "USER") => async (req: 
 
         const {userId} = decoded;
 
-        const roleCheck = await checkUserRole(userId, requiredRole);
-        if (roleCheck.status !== 200) {
-            return res.status(roleCheck.status).json({message: roleCheck.message});
+        if (requiredRole !== "USER") {
+            const roleCheck = await checkUserRole(userId, requiredRole);
+            if (roleCheck.status !== 200) {
+                return res.status(roleCheck.status).json({message: roleCheck.message});
+            }
         }
 
         const refreshToken = req.cookies['_auth.refresh-token'];

@@ -91,7 +91,7 @@ export default (router: Router) => {
                     },
                 });
 
-                const mailStatus = await sendMail(newUser, verifyKey.key, 'Verify your Schulsync Account');
+                const mailStatus = await sendMail(newUser.email, verifyKey.key, 'Verify your Schulsync Account');
 
                 if (!mailStatus) {
                     logger.error('MAILER', `Failed to send verification email: ${email}`);

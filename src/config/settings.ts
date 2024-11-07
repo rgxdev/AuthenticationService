@@ -14,6 +14,8 @@ export const LOGS_DIRECTORY = "/home/projects/log/schulsync";
 
 export const COOKIE_DOMAIN = "schulsync.com";
 
+export const DEFAULT_DOMAIN = "http://localhost:1407"
+
 export const AUTHENTICATION_TYPE = 1; // 1 = Email, 2 = Username
 export const TOKEN_EXPIRATION = 30; // write it in days
 export const REFERRAL_CODE_LENGTH = 6;

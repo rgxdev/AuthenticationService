@@ -29,6 +29,16 @@ model RefreshToken {
   device Device @relation(fields: [deviceId], references: [id])
 }
 
+model ResetToken {
+  id        String   @id @default(uuid()) @map("_id")
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
 model Device {
   id            String         @id @default(uuid()) @map("_id")
   userId        String
@@ -64,6 +74,7 @@ model User {
   SsoToken     SsoToken[]
   Device       Device[]
   RefreshToken RefreshToken[]
+  ResetToken   ResetToken[]
 }
 
 model VerifyKey {

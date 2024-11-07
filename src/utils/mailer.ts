@@ -3,18 +3,20 @@ import {logger} from "@/lib/logger";
 
 
 export async function sendMail(
-    user: any,
+    email: string,
     htmlContent: string,
-    subject: string
+    subject: string,
+    text?: string
 ) {
     try {
         const transporter = await createTransporter();
 
         const mailOptions = {
             from: "Personal System <no-reply@d-aaron.dev>", // todo: change this to your email
-            to: user.email,
+            to: email,
             subject: subject,
             html: htmlContent,
+            text: text,
         };
 
         const result = await transporter.sendMail(mailOptions);
