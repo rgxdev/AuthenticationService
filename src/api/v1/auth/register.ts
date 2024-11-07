@@ -3,8 +3,8 @@ import {Request, Response, Router} from 'express';
 import {logger} from "@/lib/logger";
 import {RegisterSchema} from "@/schema/authSchema";
 import prisma from "@/lib/prismaClient";
-import {generateRandomString, generateReferralCode, generateToken, hashPassword} from "@/utils/essentials";
-import {AUTHENTICATION_TYPE, COOKIE_DOMAIN, MAX_IPS_PER_USER, TOKEN_EXPIRATION} from "@/config/settings";
+import {generateRandomString, generateReferralCode, hashPassword} from "@/utils/essentials";
+import {AUTHENTICATION_TYPE, MAX_IPS_PER_USER} from "@/config/settings";
 import {sendMail} from "@/utils/mailer";
 
 export default (router: Router) => {
@@ -100,16 +100,6 @@ export default (router: Router) => {
                 return {newUser, verifyKey};
             });
 
-            const token = generateToken(transactionResult.newUser.id, transactionResult.newUser.username);
-
-            res.cookie('_auth.session-token', token, {
-                secure: process.env.NODE_ENV === 'production',
-                httpOnly: true,
-                domain: `.${COOKIE_DOMAIN}`,
-                path: '/',
-                expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * TOKEN_EXPIRATION),
-                sameSite: 'lax'
-            });
 
             logger.info("AUTH", `New user registered and logged in: ${AUTHENTICATION_TYPE === 1 ? email : username}`, ipAddress);
 

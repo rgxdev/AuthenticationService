@@ -1,22 +1,16 @@
-// authUtils.ts
+// utils/security.ts
+
 import prisma from "@/lib/prismaClient";
 import {NextFunction, Request, Response} from 'express';
 import {logger} from "@/lib/logger";
-import jwt, {JwtPayload} from "jsonwebtoken";
-import {authenticator} from "otplib";
-import {getToken} from "@/utils/user";
+import jwt from "jsonwebtoken";
 import {JWT_SECRET} from "@/config/settings";
+import {verifyTokenString} from "@/utils/essentials";
+import {authenticator} from "otplib";
 
-interface Device {
-    id: string;
+interface TokenPayload extends jwt.JwtPayload {
     userId: string;
-    ipAddress: string;
-    userAgent: string;
-    lastOnline: Date;
-}
-
-interface TokenPayload extends JwtPayload {
-    userId: string;
+    username: string;
 }
 
 interface Roles {
@@ -69,7 +63,7 @@ export async function addOrUpdateDevice(user: any, req: Request): Promise<void> 
 
 export const getUserDevices = async (req: Request, res: Response): Promise<Response> => {
     try {
-        const token = getToken(req, res);
+        const token = req.headers['authorization'] ? verifyTokenString(req.headers['authorization'].split(' ')[1]) : null;
         if (!token || !token.userId) {
             return res.status(401).json({message: 'Unauthorized'});
         }
@@ -126,14 +120,15 @@ export const authenticateToken = (requiredRole: string = "USER") => async (req: 
         return res.status(403).json({message: "Invalid or expired token"});
     }
 };
+
 type Verify2FAResult =
     | { type: 'invalid_request'; message: string }
     | { type: 'invalid_code'; message: string }
     | true;
 
 export const verify2FACode = async (code: string, user: any): Promise<Verify2FAResult> => {
-    if (!code || !/^\d{6}$/.test(code)) {
-        return {type: 'invalid_request', message: 'Invalid 2FA code.'};
+    if (!code || code.length !== 6 || !/^[0-9]+$/.test(code)) {
+        return {type: 'invalid_request', message: 'Invalid 2FA code format.'};
     }
 
     if (!user.twoFactorSecret) {

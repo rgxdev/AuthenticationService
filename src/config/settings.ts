@@ -23,6 +23,9 @@ export const MAX_IPS_PER_USER = 2; // So a ipaddress can register 2 accounts
 export const MAX_DEVICES_PER_USER = 5; // So a user can login from 5 devices
 
 
+export const REFRESH_TOKEN_EXPIRATION = 30; // write it in days
+
+
 export const JWT_SECRET = process.env.JWT_SECRET!;
 
 export const EMAIL_HOST = process.env.EMAIL_HOST!;

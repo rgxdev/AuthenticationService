@@ -1,3 +1,5 @@
+// schema.prisma
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,6 +13,7 @@ enum UserRole {
   OWNER
   ADMIN
   DEVELOPER
+  SUPPORTER
   USER
 }
 
@@ -44,9 +47,10 @@ model User {
   referrals          Referral[] @relation("ReferrerRelation")
   referredUsers      Referral[] @relation("ReferredUserRelation")
 
-  VerifyKeys VerifyKey[]
-  SsoToken   SsoToken[]
-  Device     Device[]
+  VerifyKeys   VerifyKey[]
+  SsoToken     SsoToken[]
+  Device       Device[]
+  refreshToken String?
 }
 
 model VerifyKey {

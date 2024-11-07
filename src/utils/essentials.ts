@@ -1,13 +1,16 @@
+// utils/essentials.ts
+
 import bcrypt from 'bcrypt';
 import jwt, {JwtPayload} from 'jsonwebtoken';
 import {Request} from 'express';
 import {logger} from '@/lib/logger';
-import {COOKIE_DOMAIN, JWT_SECRET, REFERRAL_CODE_LENGTH, TOKEN_EXPIRATION} from "@/config/settings";
+import {COOKIE_DOMAIN, JWT_SECRET, REFERRAL_CODE_LENGTH, REFRESH_TOKEN_EXPIRATION} from "@/config/settings";
 import {randomBytes} from "crypto";
 import prisma from "@/lib/prismaClient";
 
 export interface TokenPayload extends JwtPayload {
     userId: string;
+    username: string;
 }
 
 export const hashPassword = async (password: string) => bcrypt.hash(password, 10);
@@ -21,9 +24,16 @@ export const comparePassword = async (password: string, hashed: string) => {
     }
 };
 
-export const generateToken = (userId: string, username: string) => {
+export const generateTempToken = (userId: string, username: string) => {
     return jwt.sign({userId, username}, JWT_SECRET, {
-        expiresIn: `${TOKEN_EXPIRATION}d`,
+        expiresIn: '15m',
+        audience: `.${COOKIE_DOMAIN}`,
+    });
+};
+
+export const generateRefreshToken = (userId: string, username: string) => {
+    return jwt.sign({userId, username}, JWT_SECRET, {
+        expiresIn: `${REFRESH_TOKEN_EXPIRATION}d`,
         audience: `.${COOKIE_DOMAIN}`,
     });
 };

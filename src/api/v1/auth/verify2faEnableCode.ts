@@ -14,13 +14,15 @@ export default (router: Router) => {
             });
 
             if (!user) {
-                return res.status(404).json({type: 'invalid_request', message: 'Benutzer nicht gefunden.'});
+                return res.status(404).json({type: 'invalid_request', message: 'User not found.'});
             }
+
+            console.log(user.twoFactorSecret)
 
             if (user.isTwoFactorEnabled) {
                 return res.status(400).json({
                     type: 'invalid_request',
-                    message: '2FA ist bereits für dieses Konto aktiviert.'
+                    message: '2FA is already enabled for this account.'
                 });
             }
 
@@ -34,10 +36,10 @@ export default (router: Router) => {
                 data: {isTwoFactorEnabled: true},
             });
 
-            res.status(200).json({type: 'success', message: '2FA erfolgreich aktiviert.'});
+            res.status(200).json({type: 'success', message: '2FA successfully enabled.'});
         } catch (error) {
-            logger.error('2FA_VERIFY_ENABLE', `Fehler bei der 2FA-Aktivierung: ${error} | Benutzer-ID: ${userId}`);
-            return res.status(500).json({type: 'api_error', message: 'Interner Serverfehler.'});
+            logger.error('2FA_VERIFY_ENABLE', `Error during 2FA activation: ${error} | User ID: ${userId}`);
+            return res.status(500).json({type: 'api_error', message: 'Internal server error.'});
         }
     });
 };
